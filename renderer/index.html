@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>红果短剧下载器</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <!-- 侧边导航 -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-icon">▶</div>
+      <div class="logo-txt">
+        <b>红果短剧</b>
+        <span>批量下载器</span>
+      </div>
+    </div>
+    <nav>
+      <button class="nav-btn active" data-view="download">
+        <span class="nav-ico">⬇</span>视频下载
+      </button>
+      <button class="nav-btn" data-view="manage">
+        <span class="nav-ico">☰</span>下载管理
+        <span class="nav-badge" id="navActiveCount" hidden>0</span>
+      </button>
+      <button class="nav-btn" data-view="records">
+        <span class="nav-ico">◷</span>下载记录
+      </button>
+    </nav>
+    <div class="sidebar-foot">
+      <button class="nav-btn about-btn" id="btnAbout">
+        <span class="nav-ico">ⓘ</span>关于
+      </button>
+    </div>
+  </aside>
+
+  <!-- ==================== 视频下载页 ==================== -->
+  <main class="main" id="viewDownload">
+    <!-- 输入区 -->
+    <section class="card input-card">
+      <div class="input-title">✿ 输入短剧链接或 ID</div>
+      <div class="input-row">
+        <div class="input-wrap">
+          <input type="text" id="inputLink" class="text-input"
+                 placeholder="例如：https://novelquickapp.com/s/WGPClz6sw10/ 或 766495885674044697（支持直接粘贴分享文案）">
+          <button class="hist-btn" id="btnHist" title="历史解析记录">▼</button>
+          <div class="hist-panel" id="histPanel" hidden></div>
+        </div>
+        <button class="btn btn-primary" id="btnResolve">▤ 解析短剧</button>
+      </div>
+      <div class="msg" id="resolveMsg" hidden></div>
+    </section>
+
+    <!-- 解析结果 -->
+    <section class="card series-card" id="seriesCard" hidden>
+      <div class="series-head">
+        <img class="series-cover" id="seriesCover" alt="">
+        <div class="series-right">
+          <h2 class="series-name" id="seriesTitle">-</h2>
+          <div class="series-tags">
+            <span class="tag tag-red">总集数: <b id="seriesTotal">0</b> 集</span>
+            <span class="tag tag-plain">series_id: <b id="seriesId">-</b></span>
+          </div>
+          <div class="series-actions">
+            <button class="btn btn-primary" id="btnDownloadSelected">⬇ 下载选中集数 (0)</button>
+            <button class="btn btn-ghost" id="btnGotoManage">☰ 查看下载管理</button>
+          </div>
+        </div>
+      </div>
+      <div class="select-toolbar">
+        <button class="chip" data-sel="all">全选</button>
+        <button class="chip" data-sel="invert">反选</button>
+        <button class="chip" data-sel="none">取消全选</button>
+        <span class="divider"></span>
+        <button class="chip" data-range="first10">前 10 集</button>
+        <button class="chip" data-range="first30">前 30 集</button>
+        <button class="chip" data-range="last30">后 30 集</button>
+        <span class="flex-grow"></span>
+        <label class="range-label">范围筛选:
+          <input type="text" id="inputRange" class="range-input" placeholder="如 1-30 或 1,5,10">
+        </label>
+        <button class="btn btn-red btn-sm" id="btnApplyRange">应用</button>
+      </div>
+      <div class="ep-grid" id="epGrid"></div>
+    </section>
+  </main>
+
+  <!-- ==================== 下载管理页 ==================== -->
+  <main class="main" id="viewManage" hidden>
+    <div class="manage-head">
+      <h1 class="manage-title">☰ 下载管理</h1>
+      <div class="flex-grow"></div>
+      <div class="head-root">
+        <span class="root-label">下载目录</span>
+        <span class="root-path" id="rootPath" title="">-</span>
+        <button class="btn btn-ghost btn-sm" id="btnOpenRoot">打开目录</button>
+        <button class="btn btn-ghost btn-sm" id="btnChooseRoot">更改目录</button>
+      </div>
+    </div>
+
+    <div class="toolbar" id="toolbar">
+      <button class="btn btn-ghost" id="btnRetrySel">↻ 重试选中 (0)</button>
+      <button class="btn btn-ghost" id="btnPauseSelDl" title="暂停选中的下载任务（保留断点，可继续）">‖ 暂停选中下载</button>
+      <button class="btn btn-ghost" id="btnCancelSelDl" title="取消选中的未完成任务（清理断点，已下载好的文件保留）">✕ 取消选中下载</button>
+      <button class="btn btn-ghost" id="btnRemoveSel">🗑 删除选中</button>
+      <button class="btn btn-ghost" id="btnCancelSel">取消选择</button>
+      <span class="divider" id="tbDivider"></span>
+      <button class="btn btn-ghost" id="btnPauseAll" title="暂停全部下载中的任务（保留断点）">‖ 全部暂停</button>
+      <button class="btn btn-ghost" id="btnResumeAll" title="继续全部已暂停的任务">▶ 全部继续</button>
+      <button class="btn btn-ghost" id="btnStopAll" title="停止全部下载任务（清理断点，已下载的文件保留）">■ 停止全部</button>
+      <button class="btn btn-ghost" id="btnClearDone" title="清空已完成列表（不删除视频文件）">✕ 清空已完成</button>
+      <button class="btn btn-ghost" id="btnClearFail" title="清空失败列表（清理断点）">✕ 清空失败</button>
+    </div>
+
+    <div class="tabs">
+      <label class="master-sel" title="全选 / 取消全选当前列表">
+        <input type="checkbox" id="checkAll"> 全选
+      </label>
+      <span class="tabs-gap"></span>
+      <button class="tab active" data-tab="active">下载中 <b id="tabActive">0</b></button>
+      <button class="tab" data-tab="completed">已完成 <b id="tabDone">0</b></button>
+      <button class="tab" data-tab="failed">下载失败 <b id="tabFail">0</b></button>
+      <div class="flex-grow"></div>
+      <span class="tab-info">已选 <b id="statSelected">0</b> 项</span>
+      <label class="conc-label">同时下载
+        <select id="concSelect" class="conc-select">
+          <option value="1">1 个</option>
+          <option value="2">2 个</option>
+          <option value="3">3 个</option>
+          <option value="4">4 个</option>
+          <option value="5">5 个</option>
+          <option value="6">6 个</option>
+          <option value="7">7 个</option>
+          <option value="8">8 个</option>
+          <option value="9">9 个</option>
+          <option value="10">10 个</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="list" id="taskList"></div>
+  </main>
+
+  <!-- ==================== 下载记录页 ==================== -->
+  <main class="main" id="viewRecords" hidden>
+    <div class="manage-head">
+      <h1 class="manage-title">◷ 下载记录</h1>
+    </div>
+    <div class="list" id="recordList"></div>
+  </main>
+</div>
+
+<!-- 关于弹窗 -->
+<div class="modal-mask" id="aboutModal" hidden>
+  <div class="modal about-modal">
+    <div class="about-left">
+      <div class="about-logo">▶</div>
+      <div class="about-ver" id="aboutVersion">v1.0.0</div>
+      <div class="about-name">红果短剧下载器</div>
+    </div>
+    <div class="about-right">
+      <h2>关于本应用</h2>
+      <p class="about-desc">批量解析、下载、管理短剧视频的本地工具</p>
+      <ul class="about-feats">
+        <li>支持链接 / ID / 分享文案解析</li>
+        <li>断点续传 · 失败自动重试</li>
+        <li>数据全部本地存储，无广告无遥测</li>
+      </ul>
+      <button class="btn btn-primary btn-sm" id="btnAboutClose">关闭</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" hidden></div>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "name": "hongguo-drama-downloader",
+  "version": "0.0.1",
+  "description": "红果短剧批量下载器（断点续传 / 批量管理 / 失败轮询重试）",
+  "main": "main.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron ."
+  }
+}
